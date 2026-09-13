@@ -334,6 +334,61 @@ missing_summary
 
 View(appic_extracted)
 
+state_names <- c(
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California",
+  "Colorado", "Connecticut", "Delaware", "District of Columbia",
+  "Florida", "Georgia", "Guam",
+  "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
+  "Massachusetts", "Michigan", "Minnesota", "Mississippi",
+  "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+  "New Jersey", "New Mexico", "New York", "North Carolina",
+  "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", 
+  "Puerto Rico",
+  "Rhode Island", "South Carolina", "South Dakota", "Tennessee",
+  "Texas", "Utah", "Vermont", "Virginia", "Washington",
+  "West Virginia", "Wisconsin", "Wyoming"
+)
+
+state_pattern <- paste(state_names, collapse = "|")
+
+appic_extracted <- appic_extracted |>
+  mutate(
+    state = str_extract(
+      address,
+      regex(
+        paste0("(", state_pattern, ")\\s+\\d{5}(?:-\\d{4})?$"),
+        ignore_case = TRUE
+      )
+    ) |>
+      str_remove("\\s+\\d{5}(?:-\\d{4})?$")
+  )
+
+appic_extracted |>
+  filter(is.na(state)) |>
+  select(site, address)
+
+appic_extracted = appic_extracted |> 
+  mutate(apps_per_spot_2025_2026 = 
+           round(as.numeric(number_of_completed_applications_2025_2026)/
+                   as.numeric(total_number_of_interns_2025_2026),2),
+         apps_per_spot_2026_2027 = 
+           round(as.numeric(number_of_completed_applications_2026_2027)/
+                   as.numeric(total_number_of_interns_2026_2027),2),
+         calculated_total_required_hours = 
+           as.numeric(minimum_number_of_aapi_intervention_hours_if_applicable) +
+           as.numeric(minimum_number_of_aapi_assessment_hours_if_applicable))
+
+saveRDS(appic_extracted, "appic_extracted.rds")
+
+write_csv(
+  appic_extracted,
+  "appic_extracted.csv",
+  na = ""
+)
+
+appic_extracted = readRDS("appic_extracted.rds")
+
 saveRDS(appic_extracted, "appic_extracted.rds")
 
 write_csv(
